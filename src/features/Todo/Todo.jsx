@@ -27,38 +27,38 @@ const updateTodoStatus = ({ todos, id, status }) => {
 };
 
 const moveTodoByOffset = ({ todos, id, offset }) => {
-  const fromIndex = todos.findIndex((todo) => todo.id === id);
-  if (fromIndex === -1) return todos;
+  // const fromIndex = todos.findIndex((todo) => todo.id === id);
+  // if (fromIndex === -1) return todos;
 
-  const toIndex = fromIndex + offset;
-  if (toIndex < 0) return todos;
-  if (toIndex >= todos.length) return todos;
+  // const toIndex = fromIndex + offset;
+  // if (toIndex < 0) return todos;
+  // if (toIndex >= todos.length) return todos;
 
-  const newTodos = [...todos];
-  const removedTodo = newTodos.splice(fromIndex, 1)[0];
-  newTodos.splice(toIndex, 0, removedTodo);
-  return newTodos;
-  // const sorted = [...todos].sort((a, b) => a.order - b.order);
-
-  // const index = sorted.findIndex((todo) => todo.id === id);
-  // if (index === -1) return todos;
-
-  // const targetIndex = index + offset;
-  // if (targetIndex < 0) return todos;
-  // if (targetIndex >= sorted.length) return todos;
-
-  // const current = sorted[index];
-  // const target = sorted[targetIndex];
-
-  // const newOrder = target.order;
-
-  // const newTodos = todos.map((todo) => {
-  //   if (todo.id === current.id) {
-  //     return { ...todo, order: newOrder + (offset > 0 ? 0.1 : -0.1) };
-  //   }
-  //   return todo;
-  // });
+  // const newTodos = [...todos];
+  // const removedTodo = newTodos.splice(fromIndex, 1)[0];
+  // newTodos.splice(toIndex, 0, removedTodo);
   // return newTodos;
+  const sorted = [...todos].sort((a, b) => a.order - b.order);
+
+  const index = sorted.findIndex((todo) => todo.id === id);
+  if (index === -1) return todos;
+
+  const targetIndex = index + offset;
+  if (targetIndex < 0) return todos;
+  if (targetIndex >= sorted.length) return todos;
+
+  const current = sorted[index];
+  const target = sorted[targetIndex];
+
+  const newOrder = target.order;
+
+  const newTodos = todos.map((todo) => {
+    if (todo.id === current.id) {
+      return { ...todo, order: newOrder + (offset > 0 ? 0.1 : -0.1) };
+    }
+    return todo;
+  });
+  return newTodos;
 };
 
 // * ==========================================
