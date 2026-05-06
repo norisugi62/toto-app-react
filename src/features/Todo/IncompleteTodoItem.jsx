@@ -1,15 +1,15 @@
 const IncompleteTodoItem = ({ todo, actions }) => {
   const { onComplete, onDelete, onMoveUp, onMoveDown } = actions;
-  const { text, id } = todo;
+  const { text, id, status } = todo;
 
   return (
     <li className="todo-item">
       <div className="item-content">
         <p className="item-text">{text}</p>
-        <button className="button" onClick={() => onMoveUp(id)}>
+        <button className="button" onClick={() => onMoveUp(id, status)}>
           ↑
         </button>
-        <button className="button" onClick={() => onMoveDown(id)}>
+        <button className="button" onClick={() => onMoveDown(id, status)}>
           ↓
         </button>
         <button className="button" onClick={() => onComplete(id)}>

@@ -16,6 +16,17 @@ const useLocalStorage = (key, initialValue) => {
   return [value, setValue];
 };
 
+// * orderの再設定
+const normalizeOrder = (todos) => {
+  const sorted = [...todos].sort((a, b) => a.order - b.order);
+  const orderMap = new Map();
+  sorted.forEach((todo, index) => {
+    orderMap.set(todo.id, index + 1); // Mapにidをkeyとしてindex + 1でorderとなる値を保存
+  });
+  return todos.map((todo) => ({ ...todo, order: orderMap.get(todo.id) }));
+  // idで検索してorderとなる値を渡す
+};
+
 // * todo.status でフィルターをかける
 const filterTodosByStatus = (todos, status) => {
   return todos.filter((todo) => todo.status === status);
@@ -26,39 +37,26 @@ const updateTodoStatus = ({ todos, id, status }) => {
   return todos.map((todo) => (todo.id === id ? { ...todo, status } : todo));
 };
 
-const moveTodoByOffset = ({ todos, id, offset }) => {
-  // const fromIndex = todos.findIndex((todo) => todo.id === id);
-  // if (fromIndex === -1) return todos;
-
-  // const toIndex = fromIndex + offset;
-  // if (toIndex < 0) return todos;
-  // if (toIndex >= todos.length) return todos;
-
-  // const newTodos = [...todos];
-  // const removedTodo = newTodos.splice(fromIndex, 1)[0];
-  // newTodos.splice(toIndex, 0, removedTodo);
-  // return newTodos;
+const moveTodoWithinStatus = ({ todos, id, offset, status }) => {
   const sorted = [...todos].sort((a, b) => a.order - b.order);
+  const list = sorted.filter((todo) => todo.status === status);
 
-  const index = sorted.findIndex((todo) => todo.id === id);
+  const index = list.findIndex((todo) => todo.id === id);
   if (index === -1) return todos;
 
   const targetIndex = index + offset;
-  if (targetIndex < 0) return todos;
-  if (targetIndex >= sorted.length) return todos;
+  if (targetIndex < 0 || targetIndex >= list.length) return todos;
 
-  const current = sorted[index];
-  const target = sorted[targetIndex];
+  const current = list[index];
+  const target = list[targetIndex];
 
-  const newOrder = target.order;
-
-  const newTodos = todos.map((todo) => {
+  const tempTodos = todos.map((todo) => {
     if (todo.id === current.id) {
-      return { ...todo, order: newOrder + (offset > 0 ? 0.1 : -0.1) };
+      return { ...todo, order: target.order + (offset > 0 ? 0.1 : -0.1) };
     }
     return todo;
   });
-  return newTodos;
+  return normalizeOrder(tempTodos);
 };
 
 // * ==========================================
@@ -73,8 +71,15 @@ const Todo = () => {
 
   // * 新しいtodoを追加する処理
   const handleAddTodo = (text) => {
-    const newTodo = { text, id: Date.now(), status: 'incomplete', order: todos.length + 1 };
-    setTodos((prevTodos) => [newTodo, ...prevTodos]);
+    const maxOrder = todos.length ? Math.max(...todos.map((t) => t.order)) : 0;
+
+    const newTodo = {
+      text,
+      id: Date.now(),
+      status: 'incomplete',
+      order: maxOrder + 1,
+    };
+    setTodos((prevTodos) => [...prevTodos, newTodo]);
   };
 
   // * todoを削除
@@ -94,13 +99,13 @@ const Todo = () => {
   };
 
   // * todoの並びを上に移動させる
-  const handleMoveUp = (id) => {
-    setTodos((prevTodos) => moveTodoByOffset({ todos: prevTodos, id, offset: -1 }));
+  const handleMoveUp = (id, status) => {
+    setTodos((prevTodos) => moveTodoWithinStatus({ todos: prevTodos, id, offset: -1, status }));
   };
 
   // * todoの並びを下に移動させる
-  const handleMoveDown = (id) => {
-    setTodos((prevTodos) => moveTodoByOffset({ todos: prevTodos, id, offset: 1 }));
+  const handleMoveDown = (id, status) => {
+    setTodos((prevTodos) => moveTodoWithinStatus({ todos: prevTodos, id, offset: 1, status }));
   };
 
   const todoAction = {
